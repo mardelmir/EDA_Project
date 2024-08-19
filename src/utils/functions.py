@@ -1,51 +1,71 @@
+import re
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import scipy.stats
 
 
-def variable_type(df, discrete_threshold = 9, continuous_threshold = 15, sort_ascending = None, sugg_type = None, index = None):
+def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 15, sort_ascending = 'origin', sugg_type = None, index_first = None):
     '''
-    Calculates cardinality and suggest a variable type to each column of a dataframe. It also suggests variables to use as index.
+    Classifies the columns of a DataFrame based on their cardinality and suggests a variable type for each column.
+    It also identifies potential columns to use as an index.
 
     Args:
-        df (DataFrame): dataframe to analyze
-        discrete_threshold (int): minimum cardinality threshold to consider the variable as a numeric discrete type.
-        continuous_threshold (int): minimum cardinality threshold to consider the variable as a numeric continuous type.
-        sort_ascending (None | bool): sorts by % cardinality, useful if suggested index is not correct.
-        sugg_type (string | None): filters dataframe by specified suggested types.
-        index (None | bool): filters dataframe by possible index.
-    
+        df (DataFrame): The DataFrame to analyze.
+        discrete_threshold (int): Minimum cardinality threshold to consider a variable as a numeric discrete type. Defaults to 9.
+        continuous_threshold (int): Minimum cardinality threshold to consider a variable as a numeric continuous type. Defaults to 15.
+        sort_ascending (None | bool): If specified, sorts the DataFrame by percentage cardinality. Useful if the suggested index is not correct.
+        sugg_type (string | None): If specified, filters the DataFrame to include only columns with the suggested type.
+        index (None | bool): If specified, filters the DataFrame to include or exclude possible index columns based on the boolean value.
+
     Returns:
-        DataFrame
+        DataFrame: A DataFrame with the following columns:
+            - 'Cardinality': Number of unique values in the column.
+            - '% Cardinality': Percentage of unique values relative to the total number of rows.
+            - 'Type': The data type of the column.
+            - 'Suggested Type': Suggested type based on cardinality (e.g., 'Categorical', 'Binary', 'Numeric (discrete)', 'Numeric (continuous)').
+            - 'Possible Index': Boolean flag indicating if the column could be used as an index.
     '''
+    
     # Dataframe creation
     df_temp = pd.DataFrame([df.nunique(), df.nunique() / len(df) * 100, df.dtypes]).T
-    df_temp = df_temp.rename(columns = {0: 'cardinality', 1: '%_cardinality', 2: 'type'})
+    df_temp = df_temp.rename(columns = {0: 'Cardinality', 1: '% Cardinality', 2: 'Type'})
     
-    # Suggested type based on calculated cardinality
-    df_temp['suggested_type'] = 'Categorical'
-    df_temp.loc[df_temp['cardinality'] == 1, '%_cardinality'] = 0.00
-    df_temp.loc[df_temp['cardinality'] == 2, 'suggested_type'] = 'Binary'
-    df_temp.loc[df_temp['%_cardinality'] >= discrete_threshold, 'suggested_type'] ='Numeric (discrete)'
-    df_temp.loc[df_temp['%_cardinality'] >= continuous_threshold, 'suggested_type'] = 'Numeric (continuous)'
+    # Initial suggested type based on calculated cardinality
+    df_temp['Suggested Type'] = 'Categorical'
+    df_temp.loc[df_temp['Cardinality'] == 1, '% Cardinality'] = 0.00
+    df_temp.loc[df_temp['Cardinality'] == 2, 'Suggested Type'] = 'Binary'
+    df_temp.loc[df_temp['Cardinality'] >= discrete_threshold, 'Suggested Type'] ='Numeric (discrete)'
+    df_temp.loc[df_temp['% Cardinality'] >= continuous_threshold, 'Suggested Type'] = 'Numeric (continuous)'
     
-    # Index suggestion
-    df_temp['possible_index'] = False
-    index_cond = (df_temp['%_cardinality'] == 100) & (df_temp.index.str.contains('id', case = False, regex = False))
-    df_temp.loc[index_cond, 'possible_index'] = True
+    # Adjust classification for datetime columns
+    for col in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            df_temp.at[col, 'Suggested Type'] = 'Date/Time'
     
-    # Returns dataframe sorted by % cardinality, useful if suggested index is not correct
-    if type(sort_ascending) is bool:
-        df_temp.sort_values(by = '%_cardinality', ascending = sort_ascending, inplace = True)
+    # Adjust classification for possible identifiers (alphabetic, numeric or alphanumeric), adds index suggestion
+    df_temp['Possible Index'] = False
+    for col in df.columns:
+        if df[col].dtype == 'object' and df[col].str.contains(r'\w').any() and df_temp.at[col, '% Cardinality'] == 100.0:
+            df_temp.at[col, 'Suggested Type'] = 'Categorical (id)'
+            df_temp.at[col, 'Possible Index'] = True  
+        elif pd.api.types.is_integer_dtype(df[col]) and df_temp.at[col, '% Cardinality'] == 100.0:
+            df_temp.at[col, 'Suggested Type'] = 'Numeric (id)'
+            df_temp.at[col, 'Possible Index'] = True
     
-    # Returns dataframe that only includes specified suggested types
+    # Sort by % cardinality if specified
+    if isinstance(sort_ascending, bool):
+        df_temp.sort_values(by = '% Cardinality', ascending = sort_ascending, inplace = True)
+    
+    # Filter by suggested type if specified
     if sugg_type:
-        df_temp = df_temp.loc[df_temp['suggested_type'].str.contains(sugg_type, case = False)]
+        df_temp = df_temp.loc[df_temp['Suggested Type'].str.contains(sugg_type, case = False)]
     
-    # Returns dataframe with possible index. Can also be set to exclude possible index suggestions
-    if type(index) is bool:
-        df_temp = df_temp.loc[df_temp['possible_index'] == index]
+     # Filter by possible index if specified
+    if isinstance(index_first, bool):
+        df_temp = df_temp[df_temp['Possible Index'] == index_first]
     
     return df_temp
 
