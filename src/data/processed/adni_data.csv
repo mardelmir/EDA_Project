@@ -1,4 +1,4 @@
-Patient_ID,Age,Gender,Ethnicity,Education_yr,Smoking,CVD,Diabetes,Depression,Hypertension,Stroke,MMSE,MOCA,APOE4,DX,Group,Plasma_ptau181
+Patient_ID,Age,Gender,Ethnicity,Education_yrs,Smoking,CVD,Diabetes,Depression,Hypertension,Stroke,MMSE,MOCA,APOE4,DX,Group,Plasma_ptau181
 adni_2002,64.8,0,Caucasian,16,1.0,1.0,0.0,0.0,0.0,0.0,28,28.0,0,MCI,MCI-,6.777
 adni_2007,83.4,1,Caucasian,20,0.0,0.0,1.0,0.0,1.0,0.0,29,23.0,0,MCI,MCI+,37.897
 adni_2010,62.9,1,Other,20,,,,,,,30,27.0,1,MCI,MCI+,23.263

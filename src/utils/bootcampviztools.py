@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-def pinta_distribucion_categoricas(df, columnas_categoricas, relativa=False, mostrar_valores=False):
+def pinta_distribucion_categoricas(df, columnas_categoricas, relativa = False, mostrar_valores = False):
     num_columnas = len(columnas_categoricas)
     num_filas = (num_columnas // 2) + (num_columnas % 2)
 
@@ -100,7 +100,7 @@ def plot_categorical_relationship_fin(df, cat_col1, cat_col2, relative_freq = Fa
         plt.show()
 
 
-def plot_categorical_numerical_relationship(df, categorical_col, numerical_col, show_values=False, measure='mean'):
+def plot_categorical_numerical_relationships(df, categorical_col, numerical_col, show_values=False, measure='mean'):
     # Calcula la medida de tendencia central (mean o median)
     if measure == 'median':
         grouped_data = df.groupby(categorical_col)[numerical_col].median()
