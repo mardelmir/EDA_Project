@@ -100,13 +100,13 @@ def plot_categorical_relationship_fin(df, cat_col1, cat_col2, relative_freq = Fa
         plt.show()
 
 
-def plot_categorical_numerical_relationships(df, categorical_col, numerical_col, show_values=False, measure='mean'):
+def plot_categorical_Numerical_relationships(df, categorical_col, Numerical_col, show_values=False, measure='mean'):
     # Calcula la medida de tendencia central (mean o median)
     if measure == 'median':
-        grouped_data = df.groupby(categorical_col)[numerical_col].median()
+        grouped_data = df.groupby(categorical_col)[Numerical_col].median()
     else:
         # Por defecto, usa la media
-        grouped_data = df.groupby(categorical_col)[numerical_col].mean()
+        grouped_data = df.groupby(categorical_col)[Numerical_col].mean()
 
     # Ordena los valores
     grouped_data = grouped_data.sort_values(ascending=False)
@@ -126,9 +126,9 @@ def plot_categorical_numerical_relationships(df, categorical_col, numerical_col,
             ax = sns.barplot(x=data_subset.index, y=data_subset.values)
 
             # Añade títulos y etiquetas
-            plt.title(f'Relación entre {categorical_col} y {numerical_col} - Grupo {i + 1}')
+            plt.title(f'Relación entre {categorical_col} y {Numerical_col} - Grupo {i + 1}')
             plt.xlabel(categorical_col)
-            plt.ylabel(f'{measure.capitalize()} de {numerical_col}')
+            plt.ylabel(f'{measure.capitalize()} de {Numerical_col}')
             plt.xticks(rotation=45)
 
             # Mostrar valores en el gráfico
@@ -146,9 +146,9 @@ def plot_categorical_numerical_relationships(df, categorical_col, numerical_col,
         ax = sns.barplot(x=grouped_data.index, y=grouped_data.values)
 
         # Añade títulos y etiquetas
-        plt.title(f'Relación entre {categorical_col} y {numerical_col}')
+        plt.title(f'Relación entre {categorical_col} y {Numerical_col}')
         plt.xlabel(categorical_col)
-        plt.ylabel(f'{measure.capitalize()} de {numerical_col}')
+        plt.ylabel(f'{measure.capitalize()} de {Numerical_col}')
         plt.xticks(rotation=45)
 
         # Mostrar valores en el gráfico
