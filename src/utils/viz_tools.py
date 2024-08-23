@@ -52,7 +52,7 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
     n_rows = (n_plots // n_columns) + (1 if n_plots % n_columns != 0 else 0)
     
     # Create the base figure and a grid of subplots with the specified size
-    fig, axes = plt.subplots(n_rows, n_columns, figsize = (5 * n_columns, 6 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_columns, figsize = (5 * n_columns, 5 * n_rows))
     axes = axes.flatten() if n_plots > 1 else [axes]
     
     # Set figure title and update palette if the string is empty
@@ -213,7 +213,83 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
         plt.show()
 
 
-# Functions for Numerical variables
+# Functions for numerical variables
+
+def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = False, whisker_width = 1.5, bins = None):
+    """
+    Plots a combined visualization of histograms with optional KDE curves and boxplots for specified numerical columns in a DataFrame. It generates a grid of subplots where each row corresponds to a specified column.
+    If `boxplot` is True, the first subplot in each row is a histogram (optionally with a KDE curve) and the second is a boxplot.  If `boxplot` is False, only the histogram (with optional KDE) is displayed.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the data to plot.
+        columns : list of str
+            A list of column names to plot. Each column should be numerical.
+        kde : bool, optional, default=True
+            Whether to plot a KDE (Kernel Density Estimate) line alongside the histogram.
+        boxplot : bool, optional, default=False
+            Whether to include a boxplot alongside the histogram for each column.
+        whisker_width : float, optional, default=1.5
+            The width of the whiskers in the boxplot. Controls the extent of the whiskers relative to the IQR (Interquartile Range).
+        bins : int or str, optional, default=None
+            The number of bins to use for the histogram. If None, the number of bins will be determined automatically.
+
+    Returns:
+        None
+            Displays the plots.
+    """
+
+    # Determine the number of columns to plot
+    n_columns = len(columns)
+    
+    if n_columns:
+        # Create the base figure and a grid of subplots. If boxplots are requested, use 2 columns, otherwise 1.
+        if not boxplot:
+            fig, axs = plt.subplots(n_columns, 1, figsize = (5, 5 * n_columns))
+        else:
+            fig, axs = plt.subplots(n_columns, 2, figsize = (10, 5 * n_columns))
+        
+        # Ensure axs is a 1D array, even if there's only one subplot
+        axs = np.atleast_1d(axs).flatten()
+        
+        # Loop through each specified column to create the plots
+        for i, column in enumerate(columns):
+            # Check if the column is of a numerical data type
+            if df[column].dtype in ['int64', 'float64']:
+                # Histogram and optional KDE curve
+                ax = axs[i * (2 if boxplot else 1)]
+                sns.histplot(df[column], kde = kde, ax = ax, bins = 'auto' if bins is None else bins, color = '#74BBFF', alpha = 0.4)
+                
+                # If KDE is enabled, modify the line color for better visibility
+                if kde:
+                    for line in ax.lines:
+                        line.set_color('#004aad')
+                
+                # Set title, tick parameters, and customize axis appearance
+                ax.set_title(f'Histogram and KDE of {column}' if kde else f'Histogram of {column}')
+                ax.tick_params(colors = '#565656')
+                ax.set_axisbelow(True)
+                ax.spines[['right', 'top']].set_visible(False)
+                ax.spines[['left', 'bottom']].set_color('#565656')
+               
+                # If boxplots are requested, create a boxplot next to the histogram
+                if boxplot:
+                    ax = axs[i * 2 + 1]
+                    sns.boxplot(x = df[column], ax = ax, whis = whisker_width, color = '#74BBFF', linecolor = 'black', linewidth = 0.8)
+                    
+                    # Set title, tick parameters, and customize axis appearance for the boxplot
+                    ax.set_title(f'Boxplot of {column}')
+                    ax.tick_params(colors = '#565656')
+                    ax.spines[['right', 'top', 'left']].set_visible(False)
+                    ax.spines[['bottom']].set_color('#565656')
+                    
+        # Set the overall title for the figure
+        plt.suptitle('Histograms and Boxplots' if boxplot else 'Histograms', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
+        # Adjust layout to avoid overlap
+        plt.tight_layout(h_pad = 3, w_pad = 3)
+        # Display the final plots
+        plt.show()
+
 
 def custom_scatter_plot(df, x, y, color_col = None, size_col = None, scale = 1, legend = 'auto'):
     fig, ax = plt.subplots(figsize = (20, 10))
