@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import scipy.stats
     
 
 # Functions for categorical variables
@@ -109,6 +108,87 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
 # Relationships
 
 # Categorical-Categorical
+
+def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3, *, relative = False, rotation = 0, palette = 'viridis'):
+    # Validate cat_cols2 type
+    if isinstance(cat_cols2, str):
+        cat_cols2 = [cat_cols2]
+    
+    # Validate number of specified columns
+    if n_columns not in [1, 2, 3]:
+        raise ValueError('n_columns must be 1, 2 or 3.')
+    
+    # Determine the number of columns and rows needed for the subplot grid
+    n_plots = len(cat_cols2) - 1 if cat_col1 in cat_cols2 else len(cat_cols2)
+    if n_plots in [1, 2]:
+        n_columns = n_plots
+    n_rows = (n_plots // n_columns) + (1 if n_plots % n_columns != 0 else 0)
+    
+    # Create the base figure and a grid of subplots with the specified size
+    fig, axs = plt.subplots(n_rows, n_columns, figsize = (7 * n_columns, 5 * n_rows))
+    plt.subplots_adjust(right = 0.75)
+    axs = axs.flatten() if n_plots > 1 else [axs]
+    
+    # Set figure title and update palette if string is empty
+    plt.suptitle(f'Categorical Relationships', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
+    
+    if palette == '':
+        palette = 'viridis'
+        
+    # List to store contingency tables
+    contingency_tables = []
+    
+    # Track the number of actual plots created
+    i = 0
+    
+    # Plot the frequency distribution for each categorical column
+    for col in cat_cols2:
+        # Skip if comparing the variable with itself
+        if col == cat_col1:
+            continue  
+        
+        ax = axs[i]
+        if relative:
+            # Calculate and plot the relative frequencies
+            contingency_table = pd.crosstab(df[cat_col1], df[col], normalize = 'index', margins = False)
+            contingency_table.plot(kind = 'bar', stacked = True, color = sns.color_palette(palette), ax = ax)
+            ax.set_ylabel('Relative Frequency')
+        else:
+            # Calculate and plot the absolute frequencies
+            contingency_table = pd.crosstab(df[cat_col1], df[col], margins = False)
+            contingency_table.plot(kind = 'bar', stacked = True, color = sns.color_palette(palette), ax = ax)
+            ax.set_ylabel('Count')
+        
+        # Store the contingency table
+        contingency_tables.append(contingency_table)
+        
+        # Set the title, ticks, grid and spine
+        ax.set_title(f'{col} and {cat_col1}', ha = 'center', y = 1.025)
+        ax.set_xlabel('')
+        ax.tick_params(colors = '#565656')
+        ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
+        ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
+        ax.set_axisbelow(True)
+        ax.spines[['right', 'top', 'left']].set_visible(False)
+        ax.spines[['bottom']].set_color('#CFD2D6')
+        ax.legend(title = f'{col}', bbox_to_anchor = (1.03, 1), loc = 'upper left' )
+        
+        # Increment plot index only when a plot is created
+        i += 1
+    
+        
+    # Hide any unused subplots if the number of categorical columns is odd
+    for j in range(i, n_rows * n_columns):
+        axs[j].axis('off')
+        
+    # Adjust the layout to prevent overlap and display the plots
+    plt.tight_layout(h_pad = 3)
+    plt.show()
+    
+    return contingency_tables, fig
+    
+
+
 def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, show_values = False, size_group = 5, rotation = 45, palette = 'viridis'):
     '''
     Generates bar plots to visualize the relationship between two categorical columns in a DataFrame. It also shows the frequency (or relative frequency) of each combination of categories in `cat_col1` and `cat_col2`. 
