@@ -370,6 +370,54 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
         # Display the final plots
         plt.show()
 
+def plot_numerical_correlation(df, target, rotation=60, color=None):
+    """
+    Plots a bar chart representing the Pearson correlation between the target variable
+    and all other numerical variables in the given DataFrame.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the data.
+        target : str
+            The name of the target variable (must be numeric).
+        rotation : int, optional
+            The angle of rotation for the x-axis labels, by default 60.
+        color : str or None, optional
+            The color for the bars in the plot. If None, a default color will be used, by default None.
+
+    Returns:
+        None
+            The function displays a plot but does not return any value.
+    """
+
+    # Compute the Pearson correlation between the target and all other numeric variables
+    correlation = df.corr(numeric_only=True)[target].drop(target).sort_values()
+
+    # Calculate the y-axis limit to include all correlation values comfortably
+    y_limit = correlation.abs().max() + 0.05
+
+    # Generate figure
+    plt.figure()
+    ax = correlation.plot(kind = 'bar', width = 0.7, color = color if color else '#74BBFF')
+
+    # Set title, y-label and y-limit
+    ax.set(title = f'Pearson Correlation with {target}', ylabel = 'Pearson Correlation', ylim = [-y_limit, y_limit])
+
+    # Set the color for the tick labels and rotate the x-axis labels
+    ax.tick_params(colors = '#565656')
+    ax.tick_params(axis = 'x', rotation=rotation, colors = 'k')
+
+    # Remove the right and top spines and set color for the remaining spines
+    ax.spines[['right', 'top']].set_visible(False)
+    ax.spines[['left', 'bottom']].set_color('#565656')
+
+    # Align the x-axis labels to the right for better readability
+    ax.set_xticklabels(correlation.index, rotation = rotation, ha = 'right')
+
+    # Adjust the layout and display the plot
+    plt.tight_layout()
+    plt.show()
+
 
 def custom_scatter_plot(df, x, y, color_col = None, size_col = None, scale = 1, legend = 'auto'):
     fig, ax = plt.subplots(figsize = (20, 10))

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from scipy.stats import chi2_contingency
+from scipy.stats import chi2_contingency, mannwhitneyu
 
 
 def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 15, sort_ascending = 'origin', sugg_type = None, index_first = None):
@@ -69,7 +69,7 @@ def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 1
     
     return df_temp
 
-def categorical_correlation(df, cat_col1, cat_cols2):
+def categorical_correlation_test(df, cat_col1, cat_cols2):
     '''
     Computes the chi-squared correlation between a primary categorical column and one or more secondary categorical columns. It identifies columns from `cat_cols2` that are significantly associated with `cat_col1` based on a p-value threshold of 0.05. The function also returns detailed information for each chi-squared test conducted.
 
@@ -125,6 +125,63 @@ def categorical_correlation(df, cat_col1, cat_cols2):
         all_info[col] = {'chi2': chi2, 'p': p, 'dof': dof, 'expected': expected}
         
     # Return the dictionary of correlated columns and the detailed information
+    return correlated_cols, all_info
+
+def numerical_correlation_test(df, target, num_cols, alpha = 0.05):
+    """
+    Performs the Mann-Whitney U test to determine if there are significant differences
+    in the distributions of numerical columns between two groups defined by a binary target variable.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the data.
+        target : str
+            The name of the binary target variable (categorical) used to split the data into two groups.
+        num_cols : list or str
+            A list of numerical columns to test, or a single column name as a string.
+        alpha : float, optional
+            The significance level to determine if the p-value indicates a statistically significant difference, by default 0.05.
+    
+    Returns:
+        correlated_cols : dict
+            A dictionary containing the numerical columns that show a statistically significant difference
+            between the two groups, along with their respective p-values.
+        all_info : dict
+            A dictionary containing detailed test results (U statistic and p-value) for all tested columns.
+    """
+
+    # Validate num_cols type; if a single string is passed, convert it into a list
+    if isinstance(num_cols, str):
+        num_cols = [num_cols]
+
+    # Initialize dictionaries to store results
+    correlated_cols = {}
+    all_info = {}
+
+    # Retrieve the unique values of the binary target variable
+    target_values = df[target].value_counts().index.to_list()
+
+    # Validate that the target variable has only two unique values
+    if len(target_values) != 2:
+        raise ValueError(f'The target variable "{target}" must have exactly two unique values.')
+
+    # Split the DataFrame into two groups based on the binary target variable
+    group_a = df[df[target] == target_values[0]]
+    group_b = df[df[target] == target_values[1]]
+
+    # Loop through each numerical column in num_cols to compare its distribution between the two groups
+    for col in num_cols:
+        # Perform the Mann-Whitney U test
+        u_stat, p_value = mannwhitneyu(group_a[col], group_b[col])
+
+        # Check if the p-value is below the significance threshold and store the column if it is significant
+        if p_value < alpha and col != target:
+            correlated_cols[col] = p_value
+
+        # Store the U statistic and p-value
+        all_info[col] = {'u_stat': u_stat, 'p_value': p_value}
+
+    # Return the dictionary of significant correlations and the detailed test results
     return correlated_cols, all_info
 
 
