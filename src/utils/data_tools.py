@@ -69,7 +69,7 @@ def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 1
     
     return df_temp
 
-def categorical_correlation_test(df, cat_col1, cat_cols2):
+def categorical_correlation_test(df, cat_col1, cat_cols2, alpha = 0.05):
     '''
     Computes the chi-squared correlation between a primary categorical column and one or more secondary categorical columns. It identifies columns from `cat_cols2` that are significantly associated with `cat_col1` based on a p-value threshold of 0.05. The function also returns detailed information for each chi-squared test conducted.
 
@@ -118,7 +118,7 @@ def categorical_correlation_test(df, cat_col1, cat_cols2):
         chi2, p, dof, expected = chi2_contingency(contingency_table)
         
         # Check if the p-value is significant and avoid self-correlation
-        if p < 0.05 and col != cat_col1:
+        if p < alpha and col != cat_col1:
             correlated_cols[col] = p
             
         # Store detailed test results for the current column

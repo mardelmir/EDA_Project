@@ -3,6 +3,28 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
     
+# Auxiliary functions
+def adjust_palette(palette, n_categories):
+    """
+    Adjusts a color palette to match the number of categories.
+
+    Parameters:
+        palette (list or str): The original palette, which can be a list of colors or a seaborn palette name.
+        n_categories (int): The number of categories that need colors.
+
+    Returns:
+        list: A list of colors adjusted to match the number of categories.
+    """
+    if isinstance(palette, (list, sns.palettes._ColorPalette)):
+        # If palette is a list or a ColorPalette instance, adjust length to number of categories
+        return palette[:n_categories]
+    elif isinstance(palette, str):
+        # If palette is the name of a Seaborn palette, return the string
+        return palette
+    else:
+        raise ValueError('Palette param must be a list, ColorPalette instance or palette name (str).')
+
+
 
 # Functions for categorical variables
 
@@ -67,12 +89,12 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
             # Calculate and plot the relative frequencies
             total = df[col].value_counts().sum()
             serie = df[col].value_counts().apply(lambda x: x / total)
-            sns.barplot(x = serie.index, y = serie, ax = ax, palette = palette, hue = serie.index, legend = False)
+            sns.barplot(x = serie.index, y = serie, ax = ax, palette = adjust_palette(palette, len(serie)), hue = serie.index, legend = False)
             ax.set_ylabel('Relative Frequency')
         else:
             # Calculate and plot the absolute frequencies
             serie = df[col].value_counts()
-            sns.barplot(x = serie.index, y = serie, ax = ax, palette = palette, hue = serie.index, legend = False)
+            sns.barplot(x = serie.index, y = serie, ax = ax, palette = adjust_palette(palette, len(serie)), hue = serie.index, legend = False)
             ax.set_ylabel('Count')
 
         # Set the title, ticks, grid and spine
@@ -151,12 +173,12 @@ def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3
         if relative:
             # Calculate and plot the relative frequencies
             contingency_table = pd.crosstab(df[cat_col1], df[col], normalize = 'index', margins = False)
-            contingency_table.plot(kind = 'bar', stacked = True, color = sns.color_palette(palette), ax = ax)
+            contingency_table.plot(kind = 'bar', stacked = True, color = adjust_palette(palette, df[col].nunique()), ax = ax)
             ax.set_ylabel('Relative Frequency')
         else:
             # Calculate and plot the absolute frequencies
             contingency_table = pd.crosstab(df[cat_col1], df[col], margins = False)
-            contingency_table.plot(kind = 'bar', stacked = True, color = sns.color_palette(palette), ax = ax)
+            contingency_table.plot(kind = 'bar', stacked = True, color = adjust_palette(palette, df[col].nunique()), ax = ax)
             ax.set_ylabel('Count')
         
         # Store the contingency table
@@ -187,8 +209,6 @@ def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3
     
     return contingency_tables, fig
     
-
-
 def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, show_values = False, size_group = 5, rotation = 45, palette = 'viridis'):
     '''
     Generates bar plots to visualize the relationship between two categorical columns in a DataFrame. It also shows the frequency (or relative frequency) of each combination of categories in `cat_col1` and `cat_col2`. 
@@ -239,7 +259,7 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
 
             # Create plot
             plt.figure(figsize = (10, 6))
-            ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = data_subset, order = categories_subset, palette = palette)
+            ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = data_subset, order = categories_subset, palette = adjust_palette(palette, df[cat_col2].nunique()))
             
             # Set the title, ticks, grid and spine
             ax.set_title(f'Relationship between {cat_col1} and {cat_col2} - Group {i + 1}')
@@ -265,7 +285,7 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
     else:
         # Creates plot for less than size_group categories
         plt.figure(figsize = (10, 6))
-        ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = count_data, palette = palette)
+        ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = count_data, palette = adjust_palette(palette, df[cat_col2].nunique()))
         
         # Set the title, ticks, grid and spine
         ax.set_title(f'Relationship between {cat_col1} and {cat_col2}')
@@ -365,12 +385,12 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
                     
         # Set the overall title for the figure
         plt.suptitle('Histograms and Boxplots' if boxplot else 'Histograms', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
-        # Adjust layout to avoid overlap
+        
+        # Adjust layout and display the plots
         plt.tight_layout(h_pad = 3, w_pad = 3)
-        # Display the final plots
         plt.show()
 
-def plot_numerical_correlation(df, target, rotation=60, color=None):
+def plot_numerical_correlation(df, target, rotation = 60, color=None):
     """
     Plots a bar chart representing the Pearson correlation between the target variable
     and all other numerical variables in the given DataFrame.
@@ -405,7 +425,7 @@ def plot_numerical_correlation(df, target, rotation=60, color=None):
 
     # Set the color for the tick labels and rotate the x-axis labels
     ax.tick_params(colors = '#565656')
-    ax.tick_params(axis = 'x', rotation=rotation, colors = 'k')
+    ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
 
     # Remove the right and top spines and set color for the remaining spines
     ax.spines[['right', 'top']].set_visible(False)
@@ -414,7 +434,7 @@ def plot_numerical_correlation(df, target, rotation=60, color=None):
     # Align the x-axis labels to the right for better readability
     ax.set_xticklabels(correlation.index, rotation = rotation, ha = 'right')
 
-    # Adjust the layout and display the plot
+    # Adjust layout and display the plot
     plt.tight_layout()
     plt.show()
 
