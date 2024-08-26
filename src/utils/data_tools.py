@@ -122,7 +122,8 @@ def categorical_correlation_test(df, cat_col1, cat_cols2, alpha = 0.05):
             correlated_cols[col] = p
             
         # Store detailed test results for the current column
-        all_info[col] = {'chi2': chi2, 'p': p, 'dof': dof, 'expected': expected}
+        if col != cat_col1:
+            all_info[col] = {'chi2': chi2, 'p': p, 'dof': dof, 'expected': expected}
         
     # Return the dictionary of correlated columns and the detailed information
     return correlated_cols, all_info
@@ -179,7 +180,8 @@ def numerical_correlation_test(df, target, num_cols, alpha = 0.05):
             correlated_cols[col] = p_value
 
         # Store the U statistic and p-value
-        all_info[col] = {'u_stat': u_stat, 'p_value': p_value}
+        if col != target:
+            all_info[col] = {'u_stat': u_stat, 'p_value': p_value}
 
     # Return the dictionary of significant correlations and the detailed test results
     return correlated_cols, all_info

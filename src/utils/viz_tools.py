@@ -24,8 +24,6 @@ def adjust_palette(palette, n_categories):
     else:
         raise ValueError('Palette param must be a list, ColorPalette instance or palette name (str).')
 
-
-
 # Functions for categorical variables
 
 def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = False, show_values = False, custom_labels = False, rotation = 45, palette = 'viridis'):
@@ -61,7 +59,10 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
         None: 
             This function does not return any objects. It generates and displays a set of bar plots showing the frequency distributions of the specified categorical variables.
     '''
-
+    # Validate cat_cols2 type
+    if isinstance(cat_columns, str):
+        cat_columns = [cat_columns]
+        
     # Validate number of specified columns
     if n_columns not in [1, 2, 3]:
         raise ValueError('n_columns must be 1, 2 or 3.')
@@ -235,6 +236,9 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
     Returns:
         None: The function displays the plot and does not return any value.
     '''
+    # Validate cat_cols2 type
+    if isinstance(cat_cols2, str):
+        cat_cols2 = [cat_cols2]
     
     # Prepare the data
     count_data = df.groupby([cat_col1, cat_col2]).size().reset_index(name = 'count')
@@ -312,6 +316,150 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
         # Display plot
         plt.show()
 
+# Categorical - Numerical
+
+def custom_violinplot(df, cat_col, num_col, *, alpha = 0.8, rotation = 45, palette = 'viridis'):
+    """
+    Creates a customized violin plot without border lines and with adjustable transparency.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the data.
+        cat_col : str
+            The name of the categorical variable (for the x-axis).
+        num_col : str
+            The name of the numerical variable (for the y-axis).
+        alpha : float, optional
+            The transparency level for the violins, by default 0.7.
+        palette : str, optional
+            The color palette for the plot, by default 'deep'.
+
+    Returns:
+        None
+            The function displays a plot but does not return any value.
+    """
+
+    plt.figure(figsize = (8, 6))
+
+    # Create the violin plot
+    sns.violinplot(data = df, x = cat_col, y = num_col, hue = cat_col, palette = adjust_palette(palette, df[cat_col].nunique()), inner_kws = dict(box_width = 15, whis_width = 1.75))
+
+    # Adjust transparency (alpha) and remove border lines
+    for violin in plt.gca().collections:
+        violin.set_edgecolor('none')
+        violin.set_alpha(alpha)
+
+    # Set title, labels, grid, and spine visibility
+    ax = plt.gca()
+    ax.set(title = f'Custom Violin Plot of {num_col} by {cat_col}', xlabel = cat_col, ylabel = num_col)
+    ax.set_title(f'Custom Violin Plot of {num_col} by {cat_col}', ha = 'center', y = 1.025)
+    ax.tick_params(colors = '#565656')
+    ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
+    ax.set_axisbelow(True)
+    ax.spines[['right', 'top']].set_visible(False)
+    ax.spines[['left', 'bottom']].set_color('#565656')
+
+    # Display plot
+    plt.tight_layout()
+    plt.show()
+
+def plot_categorical_numerical_relationship(df, cat_col, num_col, *, show_values = False, measure = 'mean', rotation = 45, palette = 'viridis'):
+    '''
+    Plots a bar plot showing the relationship between a categorical column and a numerical column in a DataFrame.
+
+    Parameters:
+        df (pandas.DataFrame): 
+            The DataFrame containing the data.
+        cat_col (str): 
+            The name of the categorical column.
+        num_col (str): 
+            The name of the numerical column.
+        show_values (bool, optional): 
+            Whether to display the numerical values on the bars. Defaults to False.
+        measure (str, optional): 
+            The central tendency measure to use. Can be 'mean' or 'median'. Defaults to 'mean'.
+        rotation (int, optional): 
+            The rotation angle for the x-axis labels. Defaults to 45.
+        palette (str, optional): 
+            The color palette to use for the bars. Defaults to 'viridis'.
+
+    Returns:
+        None: 
+            Displays the bar plot(s) directly.
+
+    Notes:
+        - If there are more than 5 unique categories in the categorical column, the function will create multiple plots, each showing up to 5 categories.
+        - The function uses seaborn for plotting and matplotlib for figure adjustments.
+    '''
+     # Calculate the central tendency measure (mean or median)
+    if measure == 'median':
+        grouped_data = df.groupby(cat_col)[num_col].median()
+    else:
+       # Default to mean
+        grouped_data = df.groupby(cat_col)[num_col].mean()
+
+    # Sort values
+    grouped_data = grouped_data.sort_values(ascending = False)
+
+    # If there are more than 5 categories, split into groups of 5
+    if grouped_data.shape[0] > 5:
+        unique_categories = grouped_data.index.unique()
+        num_plots = int(np.ceil(len(unique_categories) / 5))
+
+        for i in range(num_plots):
+            # Select a subset of categories for each plot
+            categories_subset = unique_categories[i * 5:(i + 1) * 5]
+            data_subset = grouped_data.loc[categories_subset]
+
+            # Create plot
+            plt.figure(figsize = (8, 6))
+            ax = sns.barplot(x = data_subset.index, y = data_subset.values, hue = data_subset.index, palette = adjust_palette(palette, df[cat_col].nunique())) 
+            
+            # Set title, labels, grid, and spine visibility
+            ax.set_title(f'Relationship between {cat_col} and {num_col} - Group {i + 1}')
+            ax.set_xlabel(cat_col)
+            ax.set_ylabel(f'{measure.capitalize()} of {num_col}')
+            ax.tick_params(colors = '#565656')
+            ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
+            ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
+            ax.set_axisbelow(True)
+            ax.spines[['right', 'top']].set_visible(False)
+            ax.spines[['left', 'bottom']].set_color('#565656')
+
+            # Show values on the plot
+            if show_values:
+                for p in ax.patches:
+                    ax.annotate(f'{p.get_height():.2f}', (p.get_x() + p.get_width() / 2., p.get_height()),
+                                ha = 'center', va = 'center', fontsize = 10, color = 'black', xytext = (0, 5),
+                                textcoords = 'offset points')
+
+            # Display plot
+            plt.show()
+    else:
+        # Create plot for 5 or fewer categories
+        plt.figure(figsize = (8, 6))
+        ax = sns.barplot(x = grouped_data.index, y = grouped_data.values, hue = grouped_data.index, palette = adjust_palette(palette, df[cat_col].nunique()))
+        
+        # Set title, labels, grid, and spine visibility
+        ax.set_title(f'Relationship between {cat_col} and {num_col}')
+        ax.set_xlabel(cat_col)
+        ax.set_ylabel(f'{measure.capitalize()} of {num_col}')
+        ax.tick_params(colors = '#565656')
+        ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
+        ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
+        ax.set_axisbelow(True)
+        ax.spines[['right', 'top']].set_visible(False)
+        ax.spines[['left', 'bottom']].set_color('#565656')
+
+        # Show values on the plot
+        if show_values:
+            for p in ax.patches:
+                ax.annotate(f'{p.get_height():.2f}', (p.get_x() + p.get_width() / 2., p.get_height()),
+                            ha = 'center', va = 'center', fontsize = 10, color = 'black', xytext = (0, 5),
+                            textcoords = 'offset points')
+
+        # Display plot
+        plt.show()
 
 # Functions for numerical variables
 
@@ -338,7 +486,10 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
         None
             Displays the plots.
     """
-
+    # Validate cat_cols2 type
+    if isinstance(columns, str):
+        columns = [columns]
+        
     # Determine the number of columns to plot
     n_columns = len(columns)
     
@@ -390,7 +541,7 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
         plt.tight_layout(h_pad = 3, w_pad = 3)
         plt.show()
 
-def plot_numerical_correlation(df, target, rotation = 60, color=None):
+def plot_numerical_correlation(df, target, *, show_values = False, rotation = 60, color = None, positive_color = '#74BBFF', negative_color = '#F85374'):
     """
     Plots a bar chart representing the Pearson correlation between the target variable
     and all other numerical variables in the given DataFrame.
@@ -400,25 +551,37 @@ def plot_numerical_correlation(df, target, rotation = 60, color=None):
             The DataFrame containing the data.
         target : str
             The name of the target variable (must be numeric).
+        show_values : bool, optional
+            Whether to annotate the bars with their correlation values, by default False.
         rotation : int, optional
             The angle of rotation for the x-axis labels, by default 60.
         color : str or None, optional
-            The color for the bars in the plot. If None, a default color will be used, by default None.
+            The color for the bars in the plot. If specified, this color will be used for all bars.
+            If None, bars will be colored based on the sign of the correlation, by default None.
+        positive_color : str, optional
+            The color for bars representing positive correlations, by default '#74BBFF'.
+        negative_color : str, optional
+            The color for bars representing negative correlations, by default '#F85374'.
 
     Returns:
         None
             The function displays a plot but does not return any value.
     """
-
     # Compute the Pearson correlation between the target and all other numeric variables
-    correlation = df.corr(numeric_only=True)[target].drop(target).sort_values()
+    correlation = df.corr(numeric_only = True)[target].drop(target).sort_values()
 
     # Calculate the y-axis limit to include all correlation values comfortably
-    y_limit = correlation.abs().max() + 0.05
+    y_limit = correlation.abs().max() + 0.1
+    
+    # Generate colors for the bars: positive correlations -> positive_color, negative correlations -> negative_color
+    if color:
+        bar_colors = color
+    else:
+        bar_colors = [positive_color if val > 0 else negative_color for val in correlation]
 
-    # Generate figure
+    # Generate figure and plot the bar chart with the calculated colors
     plt.figure()
-    ax = correlation.plot(kind = 'bar', width = 0.7, color = color if color else '#74BBFF')
+    ax = correlation.plot(kind = 'bar', width = 0.7, color = bar_colors)
 
     # Set title, y-label and y-limit
     ax.set(title = f'Pearson Correlation with {target}', ylabel = 'Pearson Correlation', ylim = [-y_limit, y_limit])
@@ -433,8 +596,24 @@ def plot_numerical_correlation(df, target, rotation = 60, color=None):
 
     # Align the x-axis labels to the right for better readability
     ax.set_xticklabels(correlation.index, rotation = rotation, ha = 'right')
+    
+    if show_values:
+            # Annotate each bar with its height (the frequency value)
+            for p in ax.patches:
+                height = p.get_height()
+                # Adjust annotation position and color based on the correlation sign
+                if height > 0:
+                    ax.annotate(f'{height:.2f}', 
+                                (p.get_x() + p.get_width() / 2., height), 
+                                ha = 'center', va = 'center', xytext = (0, 7), 
+                                textcoords = 'offset points', size = 9, color = positive_color if not color else color)
+                else:
+                    ax.annotate(f'{height:.2f}', 
+                                (p.get_x() + p.get_width() / 2., height), 
+                                ha = 'center', va = 'center', xytext = (0, -7), 
+                                textcoords = 'offset points', size = 9, color = negative_color if not color else color)
 
-    # Adjust layout and display the plot
+    # Adjust the layout and display the plot
     plt.tight_layout()
     plt.show()
 
