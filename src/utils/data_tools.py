@@ -128,36 +128,33 @@ def categorical_correlation_test(df, cat_col1, cat_cols2, alpha = 0.05):
     # Return the dictionary of correlated columns and the detailed information
     return correlated_cols, all_info
 
-def numerical_correlation_test(df, target, num_cols, alpha = 0.05):
+def categorical_numerical_test(df, target, alpha = 0.05, significant_only = False):
     """
-    Performs the Mann-Whitney U test to determine if there are significant differences
-    in the distributions of numerical columns between two groups defined by a binary target variable.
+    Performs the Mann-Whitney U test to determine if there are significant differences in the distributions of numerical columns between two groups defined by a binary target variable.
 
     Parameters:
         df : pandas.DataFrame
             The DataFrame containing the data.
         target : str
             The name of the binary target variable (categorical) used to split the data into two groups.
-        num_cols : list or str
-            A list of numerical columns to test, or a single column name as a string.
         alpha : float, optional
-            The significance level to determine if the p-value indicates a statistically significant difference, by default 0.05.
-    
+            The significance level to determine if the p-value indicates a statistically significant difference,
+            by default 0.05.
+        significant_only : bool, optional
+            If True, the function returns only the columns with statistically significant results (p-value < alpha), 
+            by default False.
+
     Returns:
-        correlated_cols : dict
-            A dictionary containing the numerical columns that show a statistically significant difference
-            between the two groups, along with their respective p-values.
-        all_info : dict
-            A dictionary containing detailed test results (U statistic and p-value) for all tested columns.
+        results_df : pandas.DataFrame
+            A DataFrame containing the U statistic, p-value, and a boolean flag indicating statistical significance for each numerical column tested. 
+            If `significant_only` is True, only the columns with significant results are returned.
     """
+    
+    # Identify all numerical columns in the DataFrame
+    num_cols = df.select_dtypes(include = np.number).columns.tolist()
 
-    # Validate num_cols type; if a single string is passed, convert it into a list
-    if isinstance(num_cols, str):
-        num_cols = [num_cols]
-
-    # Initialize dictionaries to store results
-    correlated_cols = {}
-    all_info = {}
+    # Initialize a dictionary to store the test results
+    results = {}
 
     # Retrieve the unique values of the binary target variable
     target_values = df[target].value_counts().index.to_list()
@@ -170,21 +167,25 @@ def numerical_correlation_test(df, target, num_cols, alpha = 0.05):
     group_a = df[df[target] == target_values[0]]
     group_b = df[df[target] == target_values[1]]
 
-    # Loop through each numerical column in num_cols to compare its distribution between the two groups
+    # Loop through each numerical column to compare its distribution between the two groups
     for col in num_cols:
-        # Perform the Mann-Whitney U test
-        u_stat, p_value = mannwhitneyu(group_a[col], group_b[col])
-
-        # Check if the p-value is below the significance threshold and store the column if it is significant
-        if p_value < alpha and col != target:
-            correlated_cols[col] = p_value
-
-        # Store the U statistic and p-value
         if col != target:
-            all_info[col] = {'u_stat': u_stat, 'p_value': p_value}
+            # Perform the Mann-Whitney U test
+            u_stat, p_value = mannwhitneyu(group_a[col], group_b[col])
 
-    # Return the dictionary of significant correlations and the detailed test results
-    return correlated_cols, all_info
+            # Store the U statistic and p-value in the results dictionary
+            results[col] = {'u_stat': u_stat, 'p_value': p_value}
+
+    # Convert the results dictionary to a DataFrame for easier handling
+    results_df = pd.DataFrame(results).T
+    results_df['significant'] = results_df['p_value'] < alpha
+
+    # If significant_only is True, filter the results to include only significant results
+    if significant_only:
+        results_df = results_df[results_df['significant'] == True]
+
+    # Return the DataFrame with the test results
+    return results_df
 
 
 # Adds 1 space for strings written in PascalCase or camelCase

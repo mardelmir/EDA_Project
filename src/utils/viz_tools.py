@@ -25,7 +25,6 @@ def adjust_palette(palette, n_categories):
         raise ValueError('Palette param must be a list, ColorPalette instance or palette name (str).')
 
 # Functions for categorical variables
-
 def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = False, show_values = False, custom_labels = False, rotation = 45, palette = 'viridis'):
     '''   
     Generates bar plots to visualize the distribution of categorical variables in a given DataFrame. The function allows for plotting either the absolute or relative frequencies of the categories for each specified column. Additionally, it provides options to display frequency values directly on the bars, apply custom labels, rotate the x-axis labels, and choose a color palette. The layout of the plots is automatically adjusted based on the number of columns specified by the user.
@@ -129,9 +128,7 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
     plt.show()
 
 # Relationships
-
 # Categorical-Categorical
-
 def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3, *, relative = False, rotation = 0, palette = 'viridis'):
     # Validate cat_cols2 type
     if isinstance(cat_cols2, str):
@@ -317,7 +314,6 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
         plt.show()
 
 # Categorical - Numerical
-
 def custom_violinplot(df, cat_col, num_col, *, alpha = 0.8, rotation = 45, palette = 'viridis'):
     """
     Creates a customized violin plot without border lines and with adjustable transparency.
@@ -462,7 +458,6 @@ def plot_categorical_numerical_relationship(df, cat_col, num_col, *, show_values
         plt.show()
 
 # Functions for numerical variables
-
 def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = False, whisker_width = 1.5, bins = None):
     """
     Plots a combined visualization of histograms with optional KDE curves and boxplots for specified numerical columns in a DataFrame. It generates a grid of subplots where each row corresponds to a specified column.
