@@ -5,7 +5,7 @@ import seaborn as sns
     
 # Auxiliary functions
 def adjust_palette(palette, n_categories):
-    """
+    '''
     Adjusts a color palette to match the number of categories.
 
     Parameters:
@@ -14,7 +14,7 @@ def adjust_palette(palette, n_categories):
 
     Returns:
         list: A list of colors adjusted to match the number of categories.
-    """
+    '''
     if isinstance(palette, (list, sns.palettes._ColorPalette)):
         # If palette is a list or a ColorPalette instance, adjust length to number of categories
         return palette[:n_categories]
@@ -130,78 +130,113 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
 # Relationships
 # Categorical-Categorical
 def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3, *, relative = False, rotation = 0, palette = 'viridis'):
-    # Validate cat_cols2 type
+    '''
+    Plots stacked bar charts to visualize the relationship between a primary categorical column
+    and one or more secondary categorical columns in a DataFrame.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the categorical data to be visualized.
+        cat_col1 : str
+            The primary categorical column for comparison.
+        cat_cols2 : str or list of str
+            One or more secondary categorical columns to compare against the primary column.
+        n_columns : int, optional, default=3
+            The number of columns in the subplot grid. Must be 1, 2, or 3.
+        relative : bool, optional, default=False
+            If True, the bar heights represent relative frequencies (proportions).
+            If False, the bar heights represent absolute counts.
+        rotation : int, optional, default=0
+            The rotation angle of the x-axis labels.
+        palette : str, optional, default='viridis'
+            The color palette to use for the bars. If empty, 'viridis' is used by default.
+
+    Returns:
+        contingency_tables : list of pandas.DataFrame
+            A list of contingency tables, one for each secondary categorical column.
+        fig : matplotlib.figure.Figure
+            The Matplotlib figure object containing the plots.
+
+    Raises:
+        ValueError
+            If `n_columns` is not 1, 2, or 3.
+
+    Notes:
+        - The function creates stacked bar charts showing the relationship between the primary categorical column (`cat_col1`) and each of the secondary categorical columns (`cat_cols2`).
+        - It uses Matplotlib to create the plots, which are arranged in a grid specified by `n_columns`.
+    '''
+
+    # Ensure `cat_cols2` is a list even if a single column is provided as a string
     if isinstance(cat_cols2, str):
         cat_cols2 = [cat_cols2]
     
-    # Validate number of specified columns
+    # Validate that the number of columns for the subplot grid is either 1, 2, or 3
     if n_columns not in [1, 2, 3]:
-        raise ValueError('n_columns must be 1, 2 or 3.')
+        raise ValueError('n_columns must be 1, 2, or 3.')
     
-    # Determine the number of columns and rows needed for the subplot grid
+    # Calculate the number of plots required and determine the grid layout
     n_plots = len(cat_cols2) - 1 if cat_col1 in cat_cols2 else len(cat_cols2)
     if n_plots in [1, 2]:
         n_columns = n_plots
     n_rows = (n_plots // n_columns) + (1 if n_plots % n_columns != 0 else 0)
     
-    # Create the base figure and a grid of subplots with the specified size
-    fig, axs = plt.subplots(n_rows, n_columns, figsize = (7 * n_columns, 5 * n_rows))
-    plt.subplots_adjust(right = 0.75)
+    # Create the figure and subplot grid based on the calculated size
+    fig, axs = plt.subplots(n_rows, n_columns, figsize=(7 * n_columns, 5 * n_rows))
+    plt.subplots_adjust(right=0.75)
     axs = axs.flatten() if n_plots > 1 else [axs]
     
-    # Set figure title and update palette if string is empty
-    plt.suptitle(f'Categorical Relationships', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
+    # Set the overall title for the figure and adjust the palette if necessary
+    plt.suptitle('Categorical Relationships', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
     
     if palette == '':
         palette = 'viridis'
         
-    # List to store contingency tables
+    # Initialize a list to store contingency tables
     contingency_tables = []
     
-    # Track the number of actual plots created
+    # Index to track the number of plots created
     i = 0
     
-    # Plot the frequency distribution for each categorical column
+    # Loop through each secondary categorical column and create the stacked bar plots
     for col in cat_cols2:
-        # Skip if comparing the variable with itself
+        # Skip if the secondary column is the same as the primary column
         if col == cat_col1:
             continue  
         
         ax = axs[i]
         if relative:
-            # Calculate and plot the relative frequencies
+            # Calculate and plot relative frequencies (proportions)
             contingency_table = pd.crosstab(df[cat_col1], df[col], normalize = 'index', margins = False)
             contingency_table.plot(kind = 'bar', stacked = True, color = adjust_palette(palette, df[col].nunique()), ax = ax)
             ax.set_ylabel('Relative Frequency')
         else:
-            # Calculate and plot the absolute frequencies
-            contingency_table = pd.crosstab(df[cat_col1], df[col], margins = False)
+            # Calculate and plot absolute frequencies (counts)
+            contingency_table = pd.crosstab(df[cat_col1], df[col], margins=False)
             contingency_table.plot(kind = 'bar', stacked = True, color = adjust_palette(palette, df[col].nunique()), ax = ax)
             ax.set_ylabel('Count')
         
-        # Store the contingency table
+        # Store the contingency table for later use
         contingency_tables.append(contingency_table)
         
-        # Set the title, ticks, grid and spine
+        # Customize plot appearance
         ax.set_title(f'{col} and {cat_col1}', ha = 'center', y = 1.025)
         ax.set_xlabel('')
-        ax.tick_params(colors = '#565656')
+        ax.tick_params(colors='#565656')
         ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
         ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
         ax.set_axisbelow(True)
         ax.spines[['right', 'top', 'left']].set_visible(False)
         ax.spines[['bottom']].set_color('#CFD2D6')
-        ax.legend(title = f'{col}', bbox_to_anchor = (1.03, 1), loc = 'upper left' )
+        ax.legend(title = f'{col}', bbox_to_anchor = (1.03, 1), loc = 'upper left')
         
-        # Increment plot index only when a plot is created
+        # Increment the plot index after creating a plot
         i += 1
     
-        
-    # Hide any unused subplots if the number of categorical columns is odd
+    # Turn off any unused subplots if there are leftover spaces in the grid
     for j in range(i, n_rows * n_columns):
         axs[j].axis('off')
         
-    # Adjust the layout to prevent overlap and display the plots
+    # Adjust the layout to avoid overlap and display the figure
     plt.tight_layout(h_pad = 3)
     plt.show()
     
@@ -315,7 +350,7 @@ def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, s
 
 # Categorical - Numerical
 def custom_violinplot(df, cat_col, num_col, *, alpha = 0.8, rotation = 45, palette = 'viridis'):
-    """
+    '''
     Creates a customized violin plot without border lines and with adjustable transparency.
 
     Parameters:
@@ -333,7 +368,7 @@ def custom_violinplot(df, cat_col, num_col, *, alpha = 0.8, rotation = 45, palet
     Returns:
         None
             The function displays a plot but does not return any value.
-    """
+    '''
 
     plt.figure(figsize = (8, 6))
 
@@ -459,7 +494,7 @@ def plot_categorical_numerical_relationship(df, cat_col, num_col, *, show_values
 
 # Functions for numerical variables
 def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = False, whisker_width = 1.5, bins = None):
-    """
+    '''
     Plots a combined visualization of histograms with optional KDE curves and boxplots for specified numerical columns in a DataFrame. It generates a grid of subplots where each row corresponds to a specified column.
     If `boxplot` is True, the first subplot in each row is a histogram (optionally with a KDE curve) and the second is a boxplot.  If `boxplot` is False, only the histogram (with optional KDE) is displayed.
 
@@ -480,7 +515,7 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
     Returns:
         None
             Displays the plots.
-    """
+    '''
     # Validate cat_cols2 type
     if isinstance(columns, str):
         columns = [columns]
@@ -537,7 +572,7 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
         plt.show()
 
 def plot_numerical_correlation(df, target, *, show_values = False, rotation = 60, color = None, positive_color = '#74BBFF', negative_color = '#F85374'):
-    """
+   '''
     Plots a bar chart representing the Pearson correlation between the target variable
     and all other numerical variables in the given DataFrame.
 
@@ -561,56 +596,56 @@ def plot_numerical_correlation(df, target, *, show_values = False, rotation = 60
     Returns:
         None
             The function displays a plot but does not return any value.
-    """
-    # Compute the Pearson correlation between the target and all other numeric variables
-    correlation = df.corr(numeric_only = True)[target].drop(target).sort_values()
+   '''
+   # Compute the Pearson correlation between the target and all other numeric variables
+   correlation = df.corr(numeric_only = True)[target].drop(target).sort_values()
+   
+   # Calculate the y-axis limit to include all correlation values comfortably
+   y_limit = correlation.abs().max() + 0.1
 
-    # Calculate the y-axis limit to include all correlation values comfortably
-    y_limit = correlation.abs().max() + 0.1
-    
     # Generate colors for the bars: positive correlations -> positive_color, negative correlations -> negative_color
-    if color:
-        bar_colors = color
-    else:
-        bar_colors = [positive_color if val > 0 else negative_color for val in correlation]
+   if color:
+       bar_colors = color
+   else:
+       bar_colors = [positive_color if val > 0 else negative_color for val in correlation]
 
     # Generate figure and plot the bar chart with the calculated colors
-    plt.figure()
-    ax = correlation.plot(kind = 'bar', width = 0.7, color = bar_colors)
+   plt.figure()
+   ax = correlation.plot(kind = 'bar', width = 0.7, color = bar_colors)
 
     # Set title, y-label and y-limit
-    ax.set(title = f'Pearson Correlation with {target}', ylabel = 'Pearson Correlation', ylim = [-y_limit, y_limit])
+   ax.set(title = f'Pearson Correlation with {target}', ylabel = 'Pearson Correlation', ylim = [-y_limit, y_limit])
 
     # Set the color for the tick labels and rotate the x-axis labels
-    ax.tick_params(colors = '#565656')
-    ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
+   ax.tick_params(colors = '#565656')
+   ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
 
     # Remove the right and top spines and set color for the remaining spines
-    ax.spines[['right', 'top']].set_visible(False)
-    ax.spines[['left', 'bottom']].set_color('#565656')
+   ax.spines[['right', 'top']].set_visible(False)
+   ax.spines[['left', 'bottom']].set_color('#565656')
 
     # Align the x-axis labels to the right for better readability
-    ax.set_xticklabels(correlation.index, rotation = rotation, ha = 'right')
-    
-    if show_values:
+   ax.set_xticklabels(correlation.index, rotation = rotation, ha = 'right')
+
+   if show_values:
             # Annotate each bar with its height (the frequency value)
-            for p in ax.patches:
-                height = p.get_height()
+           for p in ax.patches:
+               height = p.get_height()
                 # Adjust annotation position and color based on the correlation sign
-                if height > 0:
-                    ax.annotate(f'{height:.2f}', 
-                                (p.get_x() + p.get_width() / 2., height), 
-                                ha = 'center', va = 'center', xytext = (0, 7), 
-                                textcoords = 'offset points', size = 9, color = positive_color if not color else color)
-                else:
-                    ax.annotate(f'{height:.2f}', 
-                                (p.get_x() + p.get_width() / 2., height), 
-                                ha = 'center', va = 'center', xytext = (0, -7), 
-                                textcoords = 'offset points', size = 9, color = negative_color if not color else color)
+               if height > 0:
+                   ax.annotate(f'{height:.2f}', 
+                              (p.get_x() + p.get_width() / 2., height), 
+                              ha = 'center', va = 'center', xytext = (0, 7), 
+                              textcoords = 'offset points', size = 9, color = positive_color if not color else color)
+               else:
+                   ax.annotate(f'{height:.2f}', 
+                              (p.get_x() + p.get_width() / 2., height), 
+                              ha = 'center', va = 'center', xytext = (0, -7), 
+                              textcoords = 'offset points', size = 9, color = negative_color if not color else color)
 
     # Adjust the layout and display the plot
-    plt.tight_layout()
-    plt.show()
+   plt.tight_layout()
+   plt.show()
 
 
 def custom_scatter_plot(df, x, y, color_col = None, size_col = None, scale = 1, legend = 'auto'):

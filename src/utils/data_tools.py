@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from scipy.stats import chi2_contingency, mannwhitneyu
+from scipy.stats import chi2_contingency, mannwhitneyu, spearmanr
 
 
 def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 15, sort_ascending = 'origin', sugg_type = None, index_first = None):
@@ -69,67 +69,79 @@ def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 1
     
     return df_temp
 
-def categorical_correlation_test(df, cat_col1, cat_cols2, alpha = 0.05):
+def categorical_correlation_test(df, target, cat_cols, *, alpha=0.05, significant_only=False):
     '''
-    Computes the chi-squared correlation between a primary categorical column and one or more secondary categorical columns. It identifies columns from `cat_cols2` that are significantly associated with `cat_col1` based on a p-value threshold of 0.05. The function also returns detailed information for each chi-squared test conducted.
+    Computes the chi-squared correlation between a primary categorical column and one or more secondary categorical columns. 
+    Identifies columns from `cat_cols` that are significantly associated with `target` based on a p-value threshold of `alpha`. 
+    Returns a DataFrame containing detailed results for each chi-squared test conducted.
 
     Parameters:
         df : pandas.DataFrame
             The DataFrame containing the categorical columns to be analyzed.
         
-        cat_col1 : str
+        target : str
             The name of the primary categorical column in `df` for which correlations with other columns are assessed.
         
-        cat_cols2 : str or list of str
-            A column name or a list of column names in `df` to compare with `cat_col1`. The function will compute the chi-squared
-            statistic for each column in this list against `cat_col1`.
+        cat_cols : str or list of str
+            A column name or a list of column names in `df` to compare with `target`. The function will compute the chi-squared
+            statistic for each column in this list against `target`.
+        
+        alpha : float, optional
+            The significance level for determining whether a p-value indicates a significant association. Default is 0.05.
+        
+        significant_only : bool, optional
+            If True, only columns with a p-value less than `alpha` will be included in the returned DataFrame. Default is False.
 
     Returns:
-        correlated_cols : dict
-            A dictionary where the keys are the names of the columns from `cat_cols2` that have a significant association
-            (p-value < 0.05) with `cat_col1`, and the values are their corresponding p-values.
-        
-        all_info : dict
-            A dictionary containing detailed results for each chi-squared test conducted. The keys are the names of the columns
-            from `cat_cols2`, and the values are dictionaries with the following keys:
+        pandas.DataFrame
+            A DataFrame where rows correspond to columns from `cat_cols`, with the following columns:
                 - 'chi2': The chi-squared statistic.
-                - 'p': The p-value of the test.
+                - 'p_value': The p-value of the test.
                 - 'dof': The degrees of freedom of the test.
                 - 'expected': The expected frequencies table computed for the chi-squared test.
+                - 'significant': Boolean indicating if the p-value is less than the alpha threshold.
     
     Notes:
-        - If `cat_cols2` is passed as a string, it will be converted into a list containing that string.
-        - The function skips comparing `cat_col1` with itself to avoid meaningless self-correlation.
+        - If `cat_cols` is passed as a string, it will be converted into a list containing that string.
+        - The function skips comparing `target` with itself to avoid meaningless self-correlation.
         - The chi-squared test is only valid for categorical data with sufficient sample size in each category.
     '''
     
-    # Validate cat_cols2 type; if a string is passed, convert it into a list
-    if isinstance(cat_cols2, str):
-        cat_cols2 = [cat_cols2]
+    # Ensure cat_cols is a list
+    if isinstance(cat_cols, str):
+        cat_cols = [cat_cols]
         
-    # Initialize dictionaries to store results
-    correlated_cols = {}
-    all_info = {}
+    # Initialize dictionary to store results
+    results = {}
     
-    # Loop through each column in cat_cols2 to compare with cat_col1
-    for col in cat_cols2:
-        # Contingency table and chi-squared test
-        contingency_table = pd.crosstab(df[cat_col1], df[col], margins = False)
-        chi2, p, dof, expected = chi2_contingency(contingency_table)
+    # Compute chi-squared test for each column in cat_cols (excluding the target column itself)
+    for col in cat_cols:
+        if col != target:
+            # Create contingency table and perform chi-squared test
+            contingency_table = pd.crosstab(df[target], df[col], margins=False)
+            chi2, p, dof, expected = chi2_contingency(contingency_table)
+                
+            # Store detailed test results for the current column
+            results[col] = {
+                'chi2': chi2,
+                'p_value': p,
+                'dof': dof,
+                'expected': expected.tolist()  # Convert NumPy array to list for DataFrame compatibility
+            }
+    
+    # Convert the results dictionary to a DataFrame
+    results_df = pd.DataFrame(results).T.astype({'chi2': 'float64', 'p_value': 'float64', 'dof': 'int32'})
+    results_df['significant'] = results_df['p_value'] < alpha
+    results_df = results_df.sort_values('p_value', ascending=False)
+    
+    # Filter results to include only significant results if specified
+    if significant_only:
+        results_df = results_df[results_df['significant']]
         
-        # Check if the p-value is significant and avoid self-correlation
-        if p < alpha and col != cat_col1:
-            correlated_cols[col] = p
-            
-        # Store detailed test results for the current column
-        if col != cat_col1:
-            all_info[col] = {'chi2': chi2, 'p': p, 'dof': dof, 'expected': expected}
-        
-    # Return the dictionary of correlated columns and the detailed information
-    return correlated_cols, all_info
+    return results_df
 
 def categorical_numerical_test(df, target, alpha = 0.05, significant_only = False):
-    """
+    '''
     Performs the Mann-Whitney U test to determine if there are significant differences in the distributions of numerical columns between two groups defined by a binary target variable.
 
     Parameters:
@@ -148,7 +160,7 @@ def categorical_numerical_test(df, target, alpha = 0.05, significant_only = Fals
         results_df : pandas.DataFrame
             A DataFrame containing the U statistic, p-value, and a boolean flag indicating statistical significance for each numerical column tested. 
             If `significant_only` is True, only the columns with significant results are returned.
-    """
+    '''
     
     # Identify all numerical columns in the DataFrame
     num_cols = df.select_dtypes(include = np.number).columns.tolist()
@@ -186,6 +198,76 @@ def categorical_numerical_test(df, target, alpha = 0.05, significant_only = Fals
 
     # Return the DataFrame with the test results
     return results_df
+
+def numerical_correlation_spearman(df, target, *, show_heatmap = True, annot = False, threshold = 0, significant_only = False):
+    '''
+    Computes the Spearman correlation between a binary target variable and all other numerical variables in the DataFrame, and optionally visualizes the results using a heatmap.
+
+    Parameters:
+        df : pandas.DataFrame
+            The DataFrame containing the data.
+        target : str
+            The name of the binary target variable (categorical) used to compute correlations with numerical features.
+        show_heatmap : bool, optional, default=True
+            If True, displays a heatmap of the Spearman correlation coefficients.
+        annot : bool, optional, default=False
+            If True, annotates the heatmap with the correlation coefficients.
+        significant_only : bool, optional, default=False
+            If True, filters the output to include only significant correlations (p-value < 0.05).
+
+    Returns:
+        spearman_df : pandas.DataFrame
+            A DataFrame containing the Spearman correlation coefficients, p-values, and significance indicator.
+
+    Notes:
+        - The function computes the Spearman correlation, which is a non-parametric measure of rank correlation, between a binary target variable and all other numerical variables in the DataFrame. 
+        - The resulting correlations can be visualized in a heatmap if desired.
+    '''
+
+    # Initialize dictionaries to store correlation coefficients and heatmap data
+    correlations = {}
+    heatmap = {}
+    
+    # Iterate over all numerical columns in the DataFrame, excluding the target
+    for col in df.select_dtypes(include = np.number).columns:
+        if col != target:
+            # Compute Spearman correlation and p-value between the target and the current numerical column
+            corr, p_value = spearmanr(df[target], df[col])
+            heatmap[col] = {f'{target}': corr}
+            correlations[col] = {'spearman_corr': corr, 'p_value': p_value}
+    
+    # Convert the heatmap data to a DataFrame for easier visualization
+    plot_df = pd.DataFrame(heatmap)
+    
+    # Convert the correlations dictionary to a DataFrame and add a significance indicator
+    spearman_df = pd.DataFrame(correlations).T
+    spearman_df['significant'] = spearman_df['p_value'] < 0.05
+    
+    # Sort the DataFrame by the correlation coefficient for better readability
+    spearman_df = spearman_df.sort_values('spearman_corr')
+    
+    # If significant_only is True, filter to include only statistically significant correlations
+    if significant_only:
+        spearman_df = spearman_df[spearman_df['significant'] == True]
+
+    # If show_heatmap is True, display a heatmap of the correlation coefficients
+    if show_heatmap:
+        plt.figure(figsize = (10, 1))
+        if annot:
+            # Create a custom annotation array
+            annot = plot_df.map(lambda x: f'{x:.2f}' if isinstance(x, (int, float)) and abs(x) > threshold else '')
+        
+        sns.heatmap(plot_df, vmin = -1, vmax = 1, annot = annot, cmap = 'coolwarm', center = 0, fmt = '')
+        plt.title(f'Spearman Correlation with {target}', y = 1.25)
+        
+        # Rotate the x-axis labels (column labels)
+        plt.xticks(rotation = 45, ha = 'right')
+    
+        # # Rotate the y-axis labels (row labels)
+        plt.yticks(rotation = 0)  # You can adjust this if you want to rotate the y-axis labels
+        plt.show()
+    
+    return spearman_df
 
 
 # Adds 1 space for strings written in PascalCase or camelCase
