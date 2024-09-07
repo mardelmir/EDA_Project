@@ -9,12 +9,15 @@ def adjust_palette(palette, n_categories):
     Adjusts a color palette to match the number of categories.
 
     Parameters:
-        palette (list or str): The original palette, which can be a list of colors or a seaborn palette name.
-        n_categories (int): The number of categories that need colors.
+    -----------
+    palette (list or str): The original palette, which can be a list of colors or a seaborn palette name.
+    n_categories (int): The number of categories that need colors.
 
     Returns:
-        list: A list of colors adjusted to match the number of categories.
+    --------
+    list: A list of colors adjusted to match the number of categories.
     '''
+    
     if isinstance(palette, (list, sns.palettes._ColorPalette)):
         # If palette is a list or a ColorPalette instance, adjust length to number of categories
         return palette[:n_categories]
@@ -30,34 +33,37 @@ def plot_categorical_distribution(df, cat_columns, n_columns = 3, *, relative = 
     Generates bar plots to visualize the distribution of categorical variables in a given DataFrame. The function allows for plotting either the absolute or relative frequencies of the categories for each specified column. Additionally, it provides options to display frequency values directly on the bars, apply custom labels, rotate the x-axis labels, and choose a color palette. The layout of the plots is automatically adjusted based on the number of columns specified by the user.
 
     Parameters:
-        df (pd.DataFrame): 
-            DataFrame containing the data to plot. It should include the categorical columns specified in `cat_columns`.
-        
-        cat_columns (list of str): 
-            List of column names (strings) corresponding to the categorical variables to visualize.
-        
-        n_columns (int, optional, default=3):
-            Number of columns for the subplot grid. This value can be 1, 2, or 3. If the number of categorical columns (`cat_columns`) is fewer than `n_columns`, the grid will automatically adjust to use the exact number of columns needed. 
+    -----------
+    df (pd.DataFrame): 
+        DataFrame containing the data to plot. It should include the categorical columns specified in `cat_columns`.
+    
+    cat_columns (list of str): 
+        List of column names (strings) corresponding to the categorical variables to visualize.
+    
+    n_columns (int, optional, default=3):
+        Number of columns for the subplot grid. This value can be 1, 2, or 3. If the number of categorical columns (`cat_columns`) is fewer than `n_columns`, the grid will automatically adjust to use the exact number of columns needed. 
 
-        relative (bool, optional, default=False): 
-            If True, the function will plot the relative frequencies of the categories. If False, it will plot the absolute frequencies.
+    relative (bool, optional, default=False): 
+        If True, the function will plot the relative frequencies of the categories. If False, it will plot the absolute frequencies.
 
-        show_values (bool, optional, default=False): 
-            If True, the function will display the frequency values directly on top of the bars in the plot.
+    show_values (bool, optional, default=False): 
+        If True, the function will display the frequency values directly on top of the bars in the plot.
 
-        custom_labels (dict of {str: list}, optional, default=False): 
-            If provided, this dictionary should map column names to lists of custom labels to use for the x-axis ticks. The keys should be column names from `cat_columns`, and the values should be lists of labels corresponding to the categories in that column.
+    custom_labels (dict of {str: list}, optional, default=False): 
+        If provided, this dictionary should map column names to lists of custom labels to use for the x-axis ticks. The keys should be column names from `cat_columns`, and the values should be lists of labels corresponding to the categories in that column.
 
-        rotation (int, optional, default=45): 
-            Angle (in degrees) to rotate the x-axis labels for better readability.
+    rotation (int, optional, default=45): 
+        Angle (in degrees) to rotate the x-axis labels for better readability.
 
-        palette (str, optional, default='viridis'): 
-            Color palette to use for the bars. If an empty string is provided, 'viridis' will be used as the default.
+    palette (str, optional, default='viridis'): 
+        Color palette to use for the bars. If an empty string is provided, 'viridis' will be used as the default.
 
     Returns:
-        None: 
-            This function does not return any objects. It generates and displays a set of bar plots showing the frequency distributions of the specified categorical variables.
+    --------
+    None: 
+        This function does not return any objects. It generates and displays a set of bar plots showing the frequency distributions of the specified categorical variables.
     '''
+    
     # Validate cat_cols2 type
     if isinstance(cat_columns, str):
         cat_columns = [cat_columns]
@@ -135,35 +141,39 @@ def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3
     and one or more secondary categorical columns in a DataFrame.
 
     Parameters:
-        df : pandas.DataFrame
-            The DataFrame containing the categorical data to be visualized.
-        cat_col1 : str
-            The primary categorical column for comparison.
-        cat_cols2 : str or list of str
-            One or more secondary categorical columns to compare against the primary column.
-        n_columns : int, optional, default=3
-            The number of columns in the subplot grid. Must be 1, 2, or 3.
-        relative : bool, optional, default=False
-            If True, the bar heights represent relative frequencies (proportions).
-            If False, the bar heights represent absolute counts.
-        rotation : int, optional, default=0
-            The rotation angle of the x-axis labels.
-        palette : str, optional, default='viridis'
-            The color palette to use for the bars. If empty, 'viridis' is used by default.
+    -----------
+    df : pandas.DataFrame
+        The DataFrame containing the categorical data to be visualized.
+    cat_col1 : str
+        The primary categorical column for comparison.
+    cat_cols2 : str or list of str
+        One or more secondary categorical columns to compare against the primary column.
+    n_columns : int, optional, default=3
+        The number of columns in the subplot grid. Must be 1, 2, or 3.
+    relative : bool, optional, default=False
+        If True, the bar heights represent relative frequencies (proportions).
+        If False, the bar heights represent absolute counts.
+    rotation : int, optional, default=0
+        The rotation angle of the x-axis labels.
+    palette : str, optional, default='viridis'
+        The color palette to use for the bars. If empty, 'viridis' is used by default.
 
     Returns:
-        contingency_tables : list of pandas.DataFrame
-            A list of contingency tables, one for each secondary categorical column.
-        fig : matplotlib.figure.Figure
-            The Matplotlib figure object containing the plots.
+    --------
+    contingency_tables : list of pandas.DataFrame
+        A list of contingency tables, one for each secondary categorical column.
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure object containing the plots.
 
     Raises:
-        ValueError
-            If `n_columns` is not 1, 2, or 3.
+    -------
+    ValueError
+        If `n_columns` is not 1, 2, or 3.
 
     Notes:
-        - The function creates stacked bar charts showing the relationship between the primary categorical column (`cat_col1`) and each of the secondary categorical columns (`cat_cols2`).
-        - It uses Matplotlib to create the plots, which are arranged in a grid specified by `n_columns`.
+    ------
+    - The function creates stacked bar charts showing the relationship between the primary categorical column (`cat_col1`) and each of the secondary categorical columns (`cat_cols2`).
+    - It uses Matplotlib to create the plots, which are arranged in a grid specified by `n_columns`.
     '''
 
     # Ensure `cat_cols2` is a list even if a single column is provided as a string
@@ -243,131 +253,191 @@ def plot_categorical_relationship_stacked(df, cat_col1, cat_cols2, n_columns = 3
     return contingency_tables, fig
     
 def plot_categorical_relationship(df, cat_col1, cat_col2, *, relative = False, show_values = False, size_group = 5, rotation = 45, palette = 'viridis'):
-    '''
-    Generates bar plots to visualize the relationship between two categorical columns in a DataFrame. It also shows the frequency (or relative frequency) of each combination of categories in `cat_col1` and `cat_col2`. 
-    If there are too many categories in `cat_col1`, the plot is divided into multiple subplots for better visualization. Additionally, it can rotate x-axis labels and display values on the bars if requested.
-
+    """
+    Plots the relationship between two categorical variables in a bar plot.
+    
     Parameters:
-        df (pd.DataFrame): 
-            The DataFrame containing the data for the plot.
-        cat_col1 (str): 
-            The name of the categorical column in the DataFrame to be used for the x-axis.
-        cat_col2 (str): 
-            The name of the categorical column in the DataFrame to differentiate the bars in the plot (through color).
-        relative (bool, optional): 
-            If True, frequencies will be displayed as relative proportions instead of absolute counts. Default is False.
-        show_values (bool, optional): 
-            If True, values will be annotated on top of the bars. Default is False.
-        size_group (int, optional): 
-            Maximum number of categories to display in a single plot. If there are more categories, they will be split into multiple plots. Default is 5.
-        rotation (int, optional): 
-            Angle of rotation for x-axis labels. Default is 45 degrees.
-        palette (str, optional): 
-            Color palette to use in the plot. Default is 'viridis'. If set to an empty string, the default Seaborn palette will be used.
-
+    -----------
+    df : pandas.DataFrame
+        The input DataFrame containing the categorical data.
+    
+    cat_col1 : str
+        The primary categorical column for the x-axis.
+    
+    cat_col2 : str or list of str
+        The secondary categorical column for the hue. Can be a single column or a list of columns.
+    
+    relative : bool, optional (default=False)
+        If True, the function will plot relative frequencies instead of absolute counts.
+    
+    show_values : bool, optional (default=False)
+        If True, the function will annotate the bars with their corresponding values.
+    
+    size_group : int, optional (default=5)
+        The maximum number of categories in `cat_col1` to plot in one figure. If the number of unique categories exceeds this value, the plots are split into groups.
+    
+    rotation : int, optional (default=45)
+        The rotation angle for the x-axis labels.
+    
+    palette : str, optional (default='viridis')
+        The color palette used for the plot.
+    
     Returns:
-        None: The function displays the plot and does not return any value.
-    '''
-    # Validate cat_cols2 type
-    if isinstance(cat_cols2, str):
-        cat_cols2 = [cat_cols2]
+    --------
+    None:
+        The function directly renders the plot.
+    """
+    
+    # Ensure cat_col2 is a list for consistent handling
+    if isinstance(cat_col2, str):
+        cat_col2 = [cat_col2]
     
     # Prepare the data
-    count_data = df.groupby([cat_col1, cat_col2]).size().reset_index(name = 'count')
+    count_data = df.groupby([cat_col1] + cat_col2).size().reset_index(name = 'count')
     total_counts = df[cat_col1].value_counts()
     
     # Calculate relative frequencies if specified
     if relative:
-        count_data['count'] = count_data.apply(lambda x: x['count'] / total_counts[x[cat_col1]], axis = 1)
+        count_data['count'] = count_data['count'] / count_data[cat_col1].map(total_counts)
     
-    if palette == '':
-        palette = 'viridis'
-
-    # If there is more than size_group categories in cat_col1, they get divided into size_group groups
+    # Retrieve unique categories in cat_col1
     unique_categories = df[cat_col1].unique()
-    if len(unique_categories) > size_group:
-        num_plots = int(np.ceil(len(unique_categories) / size_group))
-
-        for i in range(num_plots):
-            # Select subgroup of categories for each plot
-            categories_subset = unique_categories[i * size_group:(i + 1) * size_group]
-            data_subset = count_data[count_data[cat_col1].isin(categories_subset)]
-
-            # Create plot
-            plt.figure(figsize = (10, 6))
-            ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = data_subset, order = categories_subset, palette = adjust_palette(palette, df[cat_col2].nunique()))
-            
-            # Set the title, ticks, grid and spine
-            ax.set_title(f'Relationship between {cat_col1} and {cat_col2} - Group {i + 1}')
-            ax.set_xlabel(cat_col1)
-            ax.set_ylabel('Relative Frequency' if relative else 'Count')
-            ax.tick_params(colors = '#565656')
-            ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
-            ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
-            ax.set_axisbelow(True)
-            ax.spines[['right', 'top', 'bottom', 'left']].set_visible(False)
-
-            if show_values:
-                # Annotate each bar with its height (the frequency value)
-                for p in ax.patches:
-                    if p.get_xy() != (0,0):
-                        height = p.get_height()
-                        ax.annotate(f'{height:.2f}' if relative else f'{height:.0f}', (p.get_x() + p.get_width() / 2., p.get_height()),
-                                    ha = 'center', va = 'center', fontsize = 10, color = 'black', xytext = (0, size_group),
-                                    textcoords = 'offset points')
-
-            # Display plots
-            plt.show()
-    else:
-        # Creates plot for less than size_group categories
+    
+    # Split data into groups if necessary
+    num_plots = int(np.ceil(len(unique_categories) / size_group))
+    
+    def plot_group(data_subset, categories_subset, plot_idx):
+        """Helper function to create the individual plots."""
         plt.figure(figsize = (10, 6))
-        ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2, data = count_data, palette = adjust_palette(palette, df[cat_col2].nunique()))
+        ax = sns.barplot(x = cat_col1, y = 'count', hue = cat_col2[0], data = data_subset, order = categories_subset, palette = adjust_palette(palette, df[cat_col2[0]].nunique()))
         
-        # Set the title, ticks, grid and spine
-        ax.set_title(f'Relationship between {cat_col1} and {cat_col2}')
+        # Customize the plot
+        ax.set_title(f'Relationship between {cat_col1} and {cat_col2[0]}{f' - Group {plot_idx + 1}' if len(unique_categories) > size_group else ''}')
         ax.set_xlabel(cat_col1)
         ax.set_ylabel('Relative Frequency' if relative else 'Count')
-        ax.tick_params(colors = '#565656')
         ax.tick_params(axis = 'x', rotation = rotation, colors = 'k')
         ax.grid(axis = 'y', color = '#CFD2D6', linewidth = 0.4)
         ax.set_axisbelow(True)
         ax.spines[['right', 'top', 'bottom', 'left']].set_visible(False)
-
+        
+        # Annotate bars if required
         if show_values:
-            # Annotate each bar with its height (the frequency value)
-            for p in ax.patches:
-                if p.get_xy() != (0,0):
-                    height = p.get_height()
-                    ax.annotate(f'{height:.2f}' if relative else f'{height:.0f}', (p.get_x() + p.get_width() / 2., p.get_height()),
-                                ha = 'center', va = 'center', fontsize = 10, color = 'black', xytext = (0, size_group),
-                                textcoords = 'offset points')
-        # Legend
-        legend = plt.legend(title = cat_col2, title_fontsize = 'small', framealpha = 1, fontsize = 'small', edgecolor = '#565656', borderpad = 1, loc = 'best')
-        legend.get_frame().set_linewidth(0.8)
-  
-        # Display plot
+           for p in ax.patches:
+               if p.get_xy() != (0,0):
+                   height = p.get_height()
+                   ax.annotate(f'{height:.2f}' if relative else f'{height:.0f}', 
+                                (p.get_x() + p.get_width() / 2., height), 
+                                ha = 'center', va = 'center', fontsize = 10, color = 'black', 
+                                xytext = (0, 8), textcoords = 'offset points')
+        
+        # Adjust legend appearance
+        plt.legend(title = cat_col2[0], loc = 'best')
+        
+        plt.tight_layout()
         plt.show()
+    
+    # Plot in groups if necessary
+    for i in range(num_plots):
+        categories_subset = unique_categories[i * size_group:(i + 1) * size_group]
+        data_subset = count_data[count_data[cat_col1].isin(categories_subset)]
+        plot_group(data_subset, categories_subset, i)
+
+
 
 # Categorical - Numerical
+def plot_kde(df, target = '', n_columns = 3, *, palette = 'viridis'):
+    '''
+    Plots Kernel Density Estimation (KDE) graphs for the columns of a given DataFrame, allowing a comparison based on a target variable.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The input DataFrame containing the data for the KDE plots.
+    
+    target : str, optional (default is '')
+        The column name of the target variable to hue the KDE plot (usually a categorical variable). 
+        If left empty, no hue will be applied.
+    
+    n_columns : int, optional (default is 3)
+        The number of columns in the subplot grid. Can be 1, 2, or 3. 
+        The function adjusts the layout based on the number of plots.
+    
+    palette : str, optional (default is 'viridis')
+        The color palette used for the KDE plots. Defaults to 'viridis'. 
+    
+    Raises:
+    -------
+    ValueError:
+        If `n_columns` is not 1, 2, or 3.
+    
+    Returns:
+    --------
+    None:
+        The function directly renders the KDE plots.
+    '''
+    
+    # Ensure the target exists in the DataFrame
+    if target and target not in df.columns:
+        raise ValueError(f'Target column "{target}" not found in the DataFrame.')
+
+    # List of columns excluding the target variable
+    columns = df.drop(columns = [target], errors = 'ignore').columns.tolist()
+
+    # Validate the number of specified columns
+    if n_columns not in [1, 2, 3]:
+        raise ValueError('n_columns must be 1, 2, or 3.')
+
+    # Calculate number of rows and columns for the subplot grid
+    n_plots = len(columns)
+    n_columns = min(n_columns, n_plots)  # Limit n_columns to the number of plots
+    n_rows = (n_plots + n_columns - 1) // n_columns  # Ceiling division for rows
+    
+    # Create the base figure and a grid of subplots
+    fig, axs = plt.subplots(n_rows, n_columns, figsize = (5 * n_columns, 5 * n_rows))
+    axs = axs.flatten() if n_plots > 1 else [axs]
+
+    # Set figure title
+    plt.suptitle('KDE', ha = 'center', y = 1, fontproperties = {'weight': 600, 'size': 14})
+
+    # Plot the KDE for each column
+    for i, col in enumerate(columns):
+        ax = axs[i]
+        sns.kdeplot(df, x = col, hue = target, ax = ax, fill = True, palette = adjust_palette(palette, df[col].nunique()))
+        ax.set_title(col, ha = 'center')
+        ax.tick_params(colors = '#565656')
+        ax.grid(axis = 'y', color = '#CFD2D6', linewidth=0.4)
+        ax.set_axisbelow(True)
+        ax.spines[['right', 'top', 'bottom', 'left']].set_color('#888888')
+                
+    # Hide unused subplots if necessary
+    for j in range(i + 1, len(axs)):
+        axs[j].axis('off')
+
+    # Adjust layout to prevent overlap and display the plots
+    plt.tight_layout(h_pad = 3, w_pad = 5)
+    plt.show()
+
 def custom_violinplot(df, cat_col, num_col, *, alpha = 0.8, rotation = 45, palette = 'viridis'):
     '''
     Creates a customized violin plot without border lines and with adjustable transparency.
 
     Parameters:
-        df : pandas.DataFrame
-            The DataFrame containing the data.
-        cat_col : str
-            The name of the categorical variable (for the x-axis).
-        num_col : str
-            The name of the numerical variable (for the y-axis).
-        alpha : float, optional
-            The transparency level for the violins, by default 0.7.
-        palette : str, optional
-            The color palette for the plot, by default 'deep'.
+    -----------
+    df : pandas.DataFrame
+        The DataFrame containing the data.
+    cat_col : str
+        The name of the categorical variable (for the x-axis).
+    num_col : str
+        The name of the numerical variable (for the y-axis).
+    alpha : float, optional
+        The transparency level for the violins, by default 0.7.
+    palette : str, optional
+        The color palette for the plot, by default 'deep'.
 
     Returns:
-        None
-            The function displays a plot but does not return any value.
+    --------
+    None
+        The function displays a plot but does not return any value.
     '''
 
     plt.figure(figsize = (8, 6))
@@ -399,30 +469,34 @@ def plot_categorical_numerical_relationship(df, cat_col, num_col, *, show_values
     Plots a bar plot showing the relationship between a categorical column and a numerical column in a DataFrame.
 
     Parameters:
-        df (pandas.DataFrame): 
-            The DataFrame containing the data.
-        cat_col (str): 
-            The name of the categorical column.
-        num_col (str): 
-            The name of the numerical column.
-        show_values (bool, optional): 
-            Whether to display the numerical values on the bars. Defaults to False.
-        measure (str, optional): 
-            The central tendency measure to use. Can be 'mean' or 'median'. Defaults to 'mean'.
-        rotation (int, optional): 
-            The rotation angle for the x-axis labels. Defaults to 45.
-        palette (str, optional): 
-            The color palette to use for the bars. Defaults to 'viridis'.
+    -----------
+    df (pandas.DataFrame): 
+        The DataFrame containing the data.
+    cat_col (str): 
+        The name of the categorical column.
+    num_col (str): 
+        The name of the numerical column.
+    show_values (bool, optional): 
+        Whether to display the numerical values on the bars. Defaults to False.
+    measure (str, optional): 
+        The central tendency measure to use. Can be 'mean' or 'median'. Defaults to 'mean'.
+    rotation (int, optional): 
+        The rotation angle for the x-axis labels. Defaults to 45.
+    palette (str, optional): 
+        The color palette to use for the bars. Defaults to 'viridis'.
 
     Returns:
-        None: 
-            Displays the bar plot(s) directly.
+    --------
+    None: 
+        Displays the bar plot(s) directly.
 
     Notes:
-        - If there are more than 5 unique categories in the categorical column, the function will create multiple plots, each showing up to 5 categories.
-        - The function uses seaborn for plotting and matplotlib for figure adjustments.
+    ------
+    - If there are more than 5 unique categories in the categorical column, the function will create multiple plots, each showing up to 5 categories.
+    - The function uses seaborn for plotting and matplotlib for figure adjustments.
     '''
      # Calculate the central tendency measure (mean or median)
+    
     if measure == 'median':
         grouped_data = df.groupby(cat_col)[num_col].median()
     else:
@@ -499,23 +573,26 @@ def plot_combined_numerical_distribution(df, columns, *, kde = True, boxplot = F
     If `boxplot` is True, the first subplot in each row is a histogram (optionally with a KDE curve) and the second is a boxplot.  If `boxplot` is False, only the histogram (with optional KDE) is displayed.
 
     Parameters:
-        df : pandas.DataFrame
-            The DataFrame containing the data to plot.
-        columns : list of str
-            A list of column names to plot. Each column should be numerical.
-        kde : bool, optional, default=True
-            Whether to plot a KDE (Kernel Density Estimate) line alongside the histogram.
-        boxplot : bool, optional, default=False
-            Whether to include a boxplot alongside the histogram for each column.
-        whisker_width : float, optional, default=1.5
-            The width of the whiskers in the boxplot. Controls the extent of the whiskers relative to the IQR (Interquartile Range).
-        bins : int or str, optional, default=None
-            The number of bins to use for the histogram. If None, the number of bins will be determined automatically.
+    -----------
+    df : pandas.DataFrame
+        The DataFrame containing the data to plot.
+    columns : list of str
+        A list of column names to plot. Each column should be numerical.
+    kde : bool, optional, default=True
+        Whether to plot a KDE (Kernel Density Estimate) line alongside the histogram.
+    boxplot : bool, optional, default=False
+        Whether to include a boxplot alongside the histogram for each column.
+    whisker_width : float, optional, default=1.5
+        The width of the whiskers in the boxplot. Controls the extent of the whiskers relative to the IQR (Interquartile Range).
+    bins : int or str, optional, default=None
+        The number of bins to use for the histogram. If None, the number of bins will be determined automatically.
 
     Returns:
-        None
-            Displays the plots.
+    --------
+    None
+        Displays the plots.
     '''
+    
     # Validate cat_cols2 type
     if isinstance(columns, str):
         columns = [columns]
@@ -577,26 +654,29 @@ def plot_numerical_correlation(df, target, *, show_values = False, rotation = 60
     and all other numerical variables in the given DataFrame.
 
     Parameters:
-        df : pandas.DataFrame
-            The DataFrame containing the data.
-        target : str
-            The name of the target variable (must be numeric).
-        show_values : bool, optional
-            Whether to annotate the bars with their correlation values, by default False.
-        rotation : int, optional
-            The angle of rotation for the x-axis labels, by default 60.
-        color : str or None, optional
-            The color for the bars in the plot. If specified, this color will be used for all bars.
-            If None, bars will be colored based on the sign of the correlation, by default None.
-        positive_color : str, optional
-            The color for bars representing positive correlations, by default '#74BBFF'.
-        negative_color : str, optional
-            The color for bars representing negative correlations, by default '#F85374'.
+    -----------
+    df : pandas.DataFrame
+        The DataFrame containing the data.
+    target : str
+        The name of the target variable (must be numeric).
+    show_values : bool, optional
+        Whether to annotate the bars with their correlation values, by default False.
+    rotation : int, optional
+        The angle of rotation for the x-axis labels, by default 60.
+    color : str or None, optional
+        The color for the bars in the plot. If specified, this color will be used for all bars.
+        If None, bars will be colored based on the sign of the correlation, by default None.
+    positive_color : str, optional
+        The color for bars representing positive correlations, by default '#74BBFF'.
+    negative_color : str, optional
+        The color for bars representing negative correlations, by default '#F85374'.
 
     Returns:
-        None
-            The function displays a plot but does not return any value.
+    --------
+    None
+        The function displays a plot but does not return any value.
    '''
+   
    # Compute the Pearson correlation between the target and all other numeric variables
    correlation = df.corr(numeric_only = True)[target].drop(target).sort_values()
    

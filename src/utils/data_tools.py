@@ -12,15 +12,23 @@ def classify_by_cardinality(df, discrete_threshold = 9, continuous_threshold = 1
     Classifies the columns of a DataFrame based on their cardinality and suggests a variable type for each column.
     It also identifies potential columns to use as an index.
 
-    Args:
-        df (DataFrame): The DataFrame to analyze.
-        discrete_threshold (int): Minimum cardinality threshold to consider a variable as a Numerical discrete type. Defaults to 9.
-        continuous_threshold (int): Minimum cardinality threshold to consider a variable as a Numerical continuous type. Defaults to 15.
-        sort_ascending (None | bool): If specified, sorts the DataFrame by percentage cardinality. Useful if the suggested index is not correct.
-        sugg_type (string | None): If specified, filters the DataFrame to include only columns with the suggested type.
-        index (None | bool): If specified, filters the DataFrame to include or exclude possible index columns based on the boolean value.
+    Parameters:
+    -----------
+        df (DataFrame)
+            The DataFrame to analyze.
+        discrete_threshold (int)
+            Minimum cardinality threshold to consider a variable as a Numerical discrete type. Defaults to 9.
+        continuous_threshold (int)
+            Minimum cardinality threshold to consider a variable as a Numerical continuous type. Defaults to 15.
+        sort_ascending (None | bool) 
+            If specified, sorts the DataFrame by percentage cardinality. Useful if the suggested index is not correct.
+        sugg_type (string | None)
+            If specified, filters the DataFrame to include only columns with the suggested type.
+        index (None | bool)
+            If specified, filters the DataFrame to include or exclude possible index columns based on the boolean value.
 
     Returns:
+    --------
         DataFrame: A DataFrame with the following columns:
             - 'Cardinality': Number of unique values in the column.
             - '% Cardinality': Percentage of unique values relative to the total number of rows.
@@ -76,6 +84,7 @@ def categorical_correlation_test(df, target, cat_cols, *, alpha=0.05, significan
     Returns a DataFrame containing detailed results for each chi-squared test conducted.
 
     Parameters:
+    -----------
         df : pandas.DataFrame
             The DataFrame containing the categorical columns to be analyzed.
         
@@ -93,6 +102,7 @@ def categorical_correlation_test(df, target, cat_cols, *, alpha=0.05, significan
             If True, only columns with a p-value less than `alpha` will be included in the returned DataFrame. Default is False.
 
     Returns:
+    --------
         pandas.DataFrame
             A DataFrame where rows correspond to columns from `cat_cols`, with the following columns:
                 - 'chi2': The chi-squared statistic.
@@ -102,6 +112,7 @@ def categorical_correlation_test(df, target, cat_cols, *, alpha=0.05, significan
                 - 'significant': Boolean indicating if the p-value is less than the alpha threshold.
     
     Notes:
+    ------
         - If `cat_cols` is passed as a string, it will be converted into a list containing that string.
         - The function skips comparing `target` with itself to avoid meaningless self-correlation.
         - The chi-squared test is only valid for categorical data with sufficient sample size in each category.
@@ -145,6 +156,7 @@ def categorical_numerical_test(df, target, alpha = 0.05, significant_only = Fals
     Performs the Mann-Whitney U test to determine if there are significant differences in the distributions of numerical columns between two groups defined by a binary target variable.
 
     Parameters:
+    -----------
         df : pandas.DataFrame
             The DataFrame containing the data.
         target : str
@@ -157,6 +169,7 @@ def categorical_numerical_test(df, target, alpha = 0.05, significant_only = Fals
             by default False.
 
     Returns:
+    --------
         results_df : pandas.DataFrame
             A DataFrame containing the U statistic, p-value, and a boolean flag indicating statistical significance for each numerical column tested. 
             If `significant_only` is True, only the columns with significant results are returned.
@@ -204,6 +217,7 @@ def numerical_correlation_spearman(df, target, *, show_heatmap = True, annot = F
     Computes the Spearman correlation between a binary target variable and all other numerical variables in the DataFrame, and optionally visualizes the results using a heatmap.
 
     Parameters:
+    -----------
         df : pandas.DataFrame
             The DataFrame containing the data.
         target : str
@@ -216,10 +230,12 @@ def numerical_correlation_spearman(df, target, *, show_heatmap = True, annot = F
             If True, filters the output to include only significant correlations (p-value < 0.05).
 
     Returns:
+    --------
         spearman_df : pandas.DataFrame
             A DataFrame containing the Spearman correlation coefficients, p-values, and significance indicator.
 
     Notes:
+    ------
         - The function computes the Spearman correlation, which is a non-parametric measure of rank correlation, between a binary target variable and all other numerical variables in the DataFrame. 
         - The resulting correlations can be visualized in a heatmap if desired.
     '''
